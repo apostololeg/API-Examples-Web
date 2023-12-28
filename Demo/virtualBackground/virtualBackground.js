@@ -62,23 +62,41 @@ $("#join-form").submit(async function (e) {
 $("#leave").click(function (e) {
   leave();
 });
+
+// Join a channel
 async function join() {
-  // Add an event listener to play remote tracks when remote user publishes.
+  // Add event listeners
   client.on("user-published", handleUserPublished);
   client.on("user-unpublished", handleUserUnpublished);
-  [options.uid, localTracks.audioTrack, localTracks.videoTrack] = await Promise.all([client.join(options.appid, options.channel, options.token || null, options.uid || null), AgoraRTC.createMicrophoneAudioTrack({
-    encoderConfig: "music_standard"
-  }), AgoraRTC.createCameraVideoTrack()]);
+
+  [ localTracks.audioTrack, localTracks.videoTrack] = await Promise.all([
+    // Join a channel
+    // client.join(options.appid, options.channel, options.token || null),
+    // Create a local microphone track and camera track
+    localTracks.audioTrack || AgoraRTC.createMicrophoneAudioTrack(),
+    localTracks.videoTrack || AgoraRTC.createCameraVideoTrack({encoderConfig: '720p_4'})
+  ]);
+
+  // [options.uid, localTracks.audioTrack, localTracks.videoTrack] = await Promise.all([client.join(options.appid, options.channel, options.token || null, options.uid || null), AgoraRTC.createMicrophoneAudioTrack({
+  //   encoderConfig: "music_standard"
+  // }), AgoraRTC.createCameraVideoTrack()]);
+  
   if (localTracks.videoTrack) {
     $("#vb-area").removeClass("hide").addClass("show");
   }
+  
+
+  // Play local tracks
   localTracks.videoTrack.play("local-player");
   $("#local-player-name").text(`localVideo(${options.uid})`);
   $("#joined-setup").css("display", "flex");
   localTracks.audioTrack.play();
-  await client.publish(Object.values(localTracks));
+  
+  // await client.publish(Object.values(localTracks));
+  
   console.log("publish success");
 }
+
 async function leave() {
   for (trackName in localTracks) {
     var track = localTracks[trackName];
@@ -112,7 +130,7 @@ async function leave() {
 async function subscribe(user, mediaType) {
   const uid = user.uid;
   // subscribe to a remote user
-  await client.subscribe(user, mediaType);
+  // await client.subscribe(user, mediaType);
   console.log("subscribe success");
   if (mediaType === 'video') {
     const player = $(`
